@@ -13,3 +13,21 @@ class User(Base):
     full_name = Column(String(100), nullable=True)
     bio = Column(String(500), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class MovieLog(Base):
+    __tablename__ = "movie_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, nullable=False, index=True)
+
+    # Movie info from TMDB (we store a copy so we don't have to refetch every time)
+    tmdb_id = Column(Integer, nullable=False, index=True)
+    title = Column(String(255), nullable=False)
+    poster_url = Column(String(500), nullable=True)
+    release_date = Column(String(20), nullable=True)
+
+    # User's personal log data
+    rating = Column(Integer, nullable=True)  # 1-10 (we'll show as 0.5-5 stars in frontend)
+    review = Column(String(2000), nullable=True)
+    watched_date = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

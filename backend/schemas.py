@@ -35,3 +35,29 @@ class UserLogin(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+# Schema for creating a movie log
+class MovieLogCreate(BaseModel):
+    tmdb_id: int
+    title: str
+    poster_url: Optional[str] = None
+    release_date: Optional[str] = None
+    rating: Optional[int] = Field(None, ge=1, le=10)
+    review: Optional[str] = Field(None, max_length=2000)
+
+
+# Schema for returning a movie log
+class MovieLogResponse(BaseModel):
+    id: int
+    user_id: int
+    tmdb_id: int
+    title: str
+    poster_url: Optional[str] = None
+    release_date: Optional[str] = None
+    rating: Optional[int] = None
+    review: Optional[str] = None
+    watched_date: datetime
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

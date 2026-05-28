@@ -94,3 +94,35 @@ Respond ONLY with valid JSON in exactly this format (no markdown, no extra text)
         return json.loads(raw)
     except json.JSONDecodeError:
         return {"score": 0, "category": "unknown", "feedback": "Could not analyze review"}
+    
+
+def generate_blend_summary(user_a: str, user_b: str, shared_movies: list, compatibility: int) -> str:
+    """Generate an AI summary of two users' shared movie taste."""
+
+    if not shared_movies:
+        return f"You and {user_b} haven't watched any of the same movies yet. Time to start a watch party!"
+
+    # Build a summary of shared movies for the AI
+    summary_text = ""
+    for movie in shared_movies[:15]:  # cap at 15 to keep prompt short
+        you_r = movie.get("your_rating") or "no rating"
+        them_r = movie.get("their_rating") or "no rating"
+        summary_text += f"- {movie['title']}: {user_a} rated {you_r}/10, {user_b} rated {them_r}/10\n"
+
+    prompt = f"""You are analyzing the shared movie taste of two friends: {user_a} and {user_b}. They have a {compatibility}% compatibility score based on the movies they've both watched and rated.
+
+Their shared movies:
+{summary_text}
+
+Write a fun, insightful 2-3 sentence summary of their shared taste. Mention specific patterns you notice (genres they agree on, where they disagree, what kind of film duo they are). Be warm and playful, like a friend describing their movie taste. Use their actual usernames.
+
+Write only the summary, nothing else."""
+
+    response = client.chat.completions.create(
+        model=MODEL,
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=250,
+        temperature=0.8
+    )
+
+    return response.choices[0].message.content.strip()

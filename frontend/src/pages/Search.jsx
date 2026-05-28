@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import api from "../api";
 
 function Search() {
@@ -59,13 +60,17 @@ function Search() {
       <div style={styles.grid}>
         {results.map((movie) => (
           <div key={movie.tmdb_id} style={styles.card}>
-            {movie.poster_url ? (
-              <img src={movie.poster_url} alt={movie.title} style={styles.poster} />
-            ) : (
-              <div style={styles.noPoster}>No Image</div>
-            )}
+            <Link to={`/movie/${movie.tmdb_id}`}>
+              {movie.poster_url ? (
+                <img src={movie.poster_url} alt={movie.title} style={styles.poster} />
+              ) : (
+                <div style={styles.noPoster}>No Image</div>
+              )}
+            </Link>
             <div style={styles.info}>
-              <h4>{movie.title}</h4>
+              <Link to={`/movie/${movie.tmdb_id}`}>
+                <h4>{movie.title}</h4>
+              </Link>
               <p style={styles.year}>{movie.release_date?.slice(0, 4) || "N/A"} · ⭐ {movie.rating?.toFixed(1)}</p>
               <button style={styles.logBtn} onClick={() => handleLog(movie)} disabled={logging === movie.tmdb_id}>
                 {logging === movie.tmdb_id ? "Logging..." : "+ Log"}
@@ -84,7 +89,7 @@ const styles = {
   button: { padding: "14px 28px", background: "var(--accent)", color: "white", border: "none", borderRadius: "8px", fontWeight: "bold" },
   grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: "20px" },
   card: { background: "var(--bg-card)", borderRadius: "10px", overflow: "hidden", border: "1px solid var(--border)" },
-  poster: { width: "100%", height: "240px", objectFit: "cover" },
+  poster: { width: "100%", height: "240px", objectFit: "cover", cursor: "pointer" },
   noPoster: { width: "100%", height: "240px", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-dim)" },
   info: { padding: "12px" },
   year: { color: "var(--text-dim)", fontSize: "13px", margin: "6px 0 10px" },

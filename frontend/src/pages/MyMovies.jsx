@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import api from "../api";
 
 function MyMovies() {
@@ -29,13 +30,17 @@ function MyMovies() {
       <div style={styles.list}>
         {logs.map((log) => (
           <div key={log.id} style={styles.row}>
-            {log.poster_url ? (
-              <img src={log.poster_url} alt={log.title} style={styles.poster} />
-            ) : (
-              <div style={styles.noPoster}>No Image</div>
-            )}
+            <Link to={`/movie/${log.tmdb_id}`}>
+              {log.poster_url ? (
+                <img src={log.poster_url} alt={log.title} style={styles.poster} />
+              ) : (
+                <div style={styles.noPoster}>No Image</div>
+              )}
+            </Link>
             <div style={styles.info}>
-              <h3>{log.title} <span style={styles.year}>({log.release_date?.slice(0, 4)})</span></h3>
+              <Link to={`/movie/${log.tmdb_id}`}>
+                <h3>{log.title} <span style={styles.year}>({log.release_date?.slice(0, 4)})</span></h3>
+              </Link>
               {log.rating && <p style={styles.rating}>⭐ {log.rating}/10</p>}
               {log.review && <p style={styles.review}>"{log.review}"</p>}
             </div>
@@ -50,7 +55,7 @@ function MyMovies() {
 const styles = {
   list: { display: "flex", flexDirection: "column", gap: "16px" },
   row: { display: "flex", gap: "16px", background: "var(--bg-card)", padding: "16px", borderRadius: "10px", border: "1px solid var(--border)", alignItems: "center" },
-  poster: { width: "70px", height: "105px", objectFit: "cover", borderRadius: "6px" },
+  poster: { width: "70px", height: "105px", objectFit: "cover", borderRadius: "6px", cursor: "pointer" },
   noPoster: { width: "70px", height: "105px", background: "var(--bg)", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-dim)", fontSize: "11px" },
   info: { flex: 1 },
   year: { color: "var(--text-dim)", fontWeight: "normal", fontSize: "15px" },

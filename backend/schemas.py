@@ -61,3 +61,20 @@ class MovieLogResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class WatchlistCreate(BaseModel):
+    tmdb_id: int
+    title: str
+    poster_url: Optional[str] = None
+    release_date: Optional[str] = None
+
+
+class WatchlistOut(BaseModel):
+    id: int
+    tmdb_id: int
+    title: str
+    poster_url: Optional[str] = None
+    release_date: Optional[str] = None
+
+    class Config:
+        from_attributes = True

@@ -14,9 +14,13 @@ function Navbar() {
       <div style={styles.links}>
         <Link to="/" style={styles.link}>Dashboard</Link>
         <Link to="/search" style={styles.link}>Search</Link>
+        <Link to="/blend" style={styles.link}>Blend</Link>
         <Link to="/my-movies" style={styles.link}>My Movies</Link>
         <Link to="/mood-search" style={styles.link}>Mood Search</Link>
         <Link to="/taste-dna" style={styles.link}>Taste DNA</Link>
+        <Link to="/watchlist" style={styles.link}>Watchlist</Link>
+        <Link to="/feed" style={styles.link}>Feed</Link>
+        <Link to="/friends" style={styles.link}>Friends</Link>
         <button onClick={handleLogout} style={styles.logout}>Logout</button>
       </div>
     </nav>

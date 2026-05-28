@@ -6,6 +6,7 @@ from security import hash_password, verify_password, create_access_token
 import models
 import schemas
 import tmdb
+import ai_service
 from auth import get_current_user
 
 
@@ -173,3 +174,85 @@ def delete_log(
     db.delete(log)
     db.commit()
     return None
+
+@app.get("/ai/taste-dna")
+def get_taste_dna(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Generate an AI 'Taste DNA' profile based on the user's logged movies."""
+
+    # Get all the user's logs
+    logs = db.query(models.MovieLog).filter(
+        models.MovieLog.user_id == current_user.id
+    ).all()
+
+    # Generate the AI analysis
+    taste_dna = ai_service.generate_taste_dna(logs)
+
+    return {
+        "username": current_user.username,
+        "movies_analyzed": len(logs),
+        "taste_dna": taste_dna
+    }
+
+@app.get("/ai/mood-search")
+def mood_search(
+    mood: str,
+    current_user: models.User = Depends(get_current_user)
+):
+    """Recommend movies based on a mood description in plain English."""
+
+    if not mood or len(mood.strip()) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Please describe your mood"
+        )
+
+    # Ask AI for movie suggestions based on mood
+    ai_result = ai_service.mood_to_search_terms(mood)
+
+    # For each AI suggestion, look it up on TMDB to get real poster/details
+    enriched = []
+    for suggestion in ai_result.get("movies", []):
+        title = suggestion.get("title", "")
+        reason = suggestion.get("reason", "")
+        year = suggestion.get("year", "")
+        # Search TMDB for this title
+        tmdb_results = tmdb.search_movies(title)
+        if tmdb_results:
+            # Try to find a result whose release year matches the AI's year
+            best_match = tmdb_results[0]
+            if year:
+                for result in tmdb_results:
+                    release = result.get("release_date") or ""
+                    if release.startswith(str(year)):
+                        best_match = result
+                        break
+            best_match["reason"] = reason
+            enriched.append(best_match)
+
+    return {
+        "mood": mood,
+        "recommendations": enriched
+    }
+
+@app.get("/ai/score-review")
+def score_review(
+    review: str,
+    current_user: models.User = Depends(get_current_user)
+):
+    """Score the quality of a movie review using AI."""
+
+    if not review or len(review.strip()) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Review text cannot be empty"
+        )
+
+    result = ai_service.score_review_quality(review)
+
+    return {
+        "review": review,
+        "analysis": result
+    }

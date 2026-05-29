@@ -5,7 +5,7 @@ const API_BASE = "http://127.0.0.1:8000";
 
 // Create an axios instance
 const api = axios.create({
-  baseURL: API_BASE,
+    baseURL: "https://filmfolio-production.up.railway.app",
 });
 
 // Automatically attach the JWT token to every request if we have one

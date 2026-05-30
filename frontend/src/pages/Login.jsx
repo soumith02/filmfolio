@@ -31,7 +31,7 @@ function Login() {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h1 style={styles.logo}>🎬 FilmFolio</h1>
+        <h1 style={styles.logo}>CRITIQO</h1>
         <p style={styles.subtitle}>Track movies. Discover your taste.</p>
 
         <form onSubmit={handleLogin}>
@@ -79,8 +79,10 @@ const styles = {
   },
   logo: {
     textAlign: "center",
-    fontSize: "32px",
+    fontSize: "28px",
     marginBottom: "8px",
+    letterSpacing: "6px",
+    fontWeight: "800",
   },
   subtitle: {
     textAlign: "center",

@@ -165,3 +165,24 @@ def get_person_credits(person_id: int):
         "writing": writing,
         "producing": producing
     }
+
+def get_trending_movies(time_window: str = "week"):
+    """Get trending movies from TMDB. time_window can be 'day' or 'week'."""
+    url = f"{TMDB_BASE_URL}/trending/movie/{time_window}"
+    params = {"api_key": TMDB_API_KEY}
+    response = requests.get(url, params=params)
+    response.raise_for_status()
+    data = response.json()
+
+    results = []
+    for movie in data.get("results", [])[:20]:
+        results.append({
+            "tmdb_id": movie.get("id"),
+            "title": movie.get("title"),
+            "release_date": movie.get("release_date"),
+            "overview": movie.get("overview"),
+            "poster_url": f"{TMDB_IMAGE_BASE}{movie.get('poster_path')}" if movie.get("poster_path") else None,
+            "backdrop_url": f"https://image.tmdb.org/t/p/original{movie.get('backdrop_path')}" if movie.get("backdrop_path") else None,
+            "rating": movie.get("vote_average")
+        })
+    return results

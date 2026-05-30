@@ -36,3 +36,8 @@ button {
 input, textarea {
   font-family: inherit;
 }
+
+/* Hide horizontal scrollbar on horizontal scrollers */
+div[style*="overflow-x: auto"]::-webkit-scrollbar {
+  display: none;
+}

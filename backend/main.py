@@ -652,3 +652,70 @@ def get_person(person_id: int):
         "details": details,
         "credits": credits
     }
+
+# ====== Homepage endpoints ======
+
+@app.get("/trending")
+def get_trending():
+    """Get trending movies from TMDB."""
+    movies = tmdb.get_trending_movies()
+    return {"movies": movies}
+
+
+@app.get("/ai/for-you")
+def get_for_you(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get AI-personalized recommendations for the current user."""
+    logs = db.query(models.MovieLog).filter(
+        models.MovieLog.user_id == current_user.id
+    ).all()
+
+    if not logs:
+        return {"recommendations": [], "message": "Log some movies first to get recommendations"}
+
+    recommendations = ai_service.generate_for_you_recommendations(logs)
+    return {"recommendations": recommendations}
+
+
+@app.get("/me/stats")
+def get_user_stats(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get user's viewing statistics."""
+    logs = db.query(models.MovieLog).filter(
+        models.MovieLog.user_id == current_user.id
+    ).all()
+
+    watchlist_count = db.query(models.Watchlist).filter(
+        models.Watchlist.user_id == current_user.id
+    ).count()
+
+    # Calculate time spent (average movie = 110 min)
+    movies_watched = len(logs)
+    total_minutes = movies_watched * 110
+    days = total_minutes // (24 * 60)
+    hours = (total_minutes % (24 * 60)) // 60
+    minutes = total_minutes % 60
+
+    # Average rating
+    rated_logs = [l for l in logs if l.rating]
+    avg_rating = sum(l.rating for l in rated_logs) / len(rated_logs) if rated_logs else 0
+
+    # Reviews count
+    reviews_count = len([l for l in logs if l.review])
+
+    return {
+        "movies_watched": movies_watched,
+        "watchlist_count": watchlist_count,
+        "reviews_count": reviews_count,
+        "avg_rating": round(avg_rating, 1),
+        "time_spent": {
+            "days": days,
+            "hours": hours,
+            "minutes": minutes,
+            "total_minutes": total_minutes
+        }
+    }

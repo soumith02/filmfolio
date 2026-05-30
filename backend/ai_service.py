@@ -1,6 +1,7 @@
 from openai import OpenAI
-from dotenv import load_dotenv
 import os
+import json
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -126,3 +127,82 @@ Write only the summary, nothing else."""
     )
 
     return response.choices[0].message.content.strip()
+
+
+def generate_for_you_recommendations(logs: list) -> list:
+    """Generate personalized movie recommendations based on user's logs."""
+    if not logs or len(logs) < 1:
+        return []
+
+    # Build a summary of what the user likes
+    favorites = []
+    for log in logs:
+        if log.rating and log.rating >= 7:
+            favorites.append(log.title)
+
+    watched_titles = [log.title for log in logs]
+
+    if not favorites:
+        favorites = watched_titles[:5]
+
+    prompt = f"""Based on a movie lover's favorite films, recommend 8 movies they should watch next.
+
+Their favorite movies (rated highly): {", ".join(favorites[:10])}
+Movies they've already seen (do NOT recommend these): {", ".join(watched_titles[:30])}
+
+Recommend 8 movies they haven't seen that match their taste. Mix popular and lesser-known films.
+
+Return ONLY valid JSON, no other text:
+{{
+  "recommendations": [
+    {{"title": "Movie Name", "year": "2010", "reason": "Brief reason"}}
+  ]
+}}"""
+
+    try:
+        response = client.chat.completions.create(
+            model=MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=800,
+            temperature=0.8,
+            response_format={"type": "json_object"}
+        )
+    except Exception as e:
+        print(f"OpenAI error in for-you: {e}")
+        return []
+
+    try:
+        result = json.loads(response.choices[0].message.content)
+        recs = result.get("recommendations", [])
+        print(f"AI returned {len(recs)} recommendations")
+
+        # Enrich each recommendation with TMDB data
+        from tmdb import search_movies
+        enriched = []
+        for rec in recs:
+            try:
+                search_results = search_movies(rec["title"])
+                if search_results:
+                    best_match = search_results[0]
+                    year = rec.get("year", "")
+                    if year:
+                        for movie in search_results:
+                            if movie.get("release_date", "").startswith(str(year)):
+                                best_match = movie
+                                break
+                    enriched.append({
+                        "tmdb_id": best_match["tmdb_id"],
+                        "title": best_match["title"],
+                        "poster_url": best_match["poster_url"],
+                        "release_date": best_match["release_date"],
+                        "reason": rec.get("reason", "")
+                    })
+            except Exception as inner_e:
+                print(f"Error enriching {rec.get('title')}: {inner_e}")
+                continue
+
+        print(f"Enriched to {len(enriched)} movies")
+        return enriched
+    except Exception as e:
+        print(f"Error parsing AI response: {e}")
+        return []
